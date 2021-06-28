@@ -4,6 +4,8 @@ import (
 	"net"
 	"log"
 	"fmt"
+
+	"github.com/ZhengjunHUO/zjunx/pkg/config"
 )
 
 type ZServer interface {
@@ -20,10 +22,10 @@ type Server struct {
 
 func ServerInit() ZServer {
 	return &Server {
-		Name: "ZJunx Server",
-		ListenIP: "127.0.0.1",
+		Name: config.Cfg.ServerName,
+		ListenIP: config.Cfg.ListenIP,
 		IPVersion: "tcp4",
-		ListenPort: 8080,
+		ListenPort: config.Cfg.ListenPort,
 	}
 }
 
