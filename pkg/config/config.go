@@ -12,6 +12,10 @@ type Config struct {
 	ListenPort	uint16
 
 	ConnLimit	uint64
+
+	WorkerProcesses uint64
+	BacklogSize	uint64
+	ScheduleAlgo	string
 }
 
 var Cfg *Config
@@ -22,7 +26,10 @@ func init() {
 		ServerName: "Zjunx Server",
 		ListenIP: "127.0.0.1",
 		ListenPort: 8080,
-		ConnLimit: 1024,
+		ConnLimit: 256,
+		WorkerProcesses: 1,
+		BacklogSize: 2,
+		ScheduleAlgo: "rr",
 	}
 
 	Cfg.load()
