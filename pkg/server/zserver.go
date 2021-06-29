@@ -18,6 +18,8 @@ type Server struct {
 	ListenIP	string
 	IPVersion	string
 	ListenPort	uint16
+	
+	Mux		ZMux
 }
 
 func ServerInit() ZServer {
@@ -26,6 +28,7 @@ func ServerInit() ZServer {
 		ListenIP: config.Cfg.ListenIP,
 		IPVersion: "tcp4",
 		ListenPort: config.Cfg.ListenPort,
+		Mux: MuxInit(),
 	}
 }
 
