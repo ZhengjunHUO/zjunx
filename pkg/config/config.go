@@ -39,10 +39,11 @@ func init() {
 func (c *Config) load() {
 	content, err := ioutil.ReadFile("../../config/zjunx.cfg")
 	if err != nil {
-		log.Fatalln("Unable to read the config file: ", err)
+		log.Println("[WARN] Unable to read the config file: ", err)
+		return
 	}
 
 	if err = json.Unmarshal(content, c); err != nil {
-		log.Fatalln("Error occurred when parsing config file: ", err)
+		log.Fatalln("[FATAL] Error occurred when parsing config file: ", err)
 	}
 }
