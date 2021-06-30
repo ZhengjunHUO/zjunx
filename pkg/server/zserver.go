@@ -33,27 +33,27 @@ func ServerInit() ZServer {
 }
 
 func (s *Server) Start() {
-	log.Printf("Starting %s ... \n", s.Name)
+	log.Printf("[INFO] Starting %s ... \n", s.Name)
 
 	// Parse the tcp addr from the server's config
 	addr, err := net.ResolveTCPAddr(s.IPVersion, fmt.Sprintf("%s:%d", s.ListenIP, s.ListenPort))
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalln("[FATAL] ", err)
 	}
 
 	// launch a tcp network listener
 	listener, err := net.ListenTCP(s.IPVersion, addr)
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalln("[FATAL] ", err)
 	}
 	defer listener.Close()
-	log.Printf("Server is up, listening at %s:%d\n", s.ListenIP, s.ListenPort)
+	log.Printf("[INFO] Server is up, listening at %s:%d\n", s.ListenIP, s.ListenPort)
 
 	var cnxID uint64
 	for {
 		conn, err := listener.AcceptTCP()
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println("[WARN] ", err)
 			continue
 		}
 
@@ -64,5 +64,5 @@ func (s *Server) Start() {
 }
 
 func (s *Server) Stop() {
-	log.Printf("%s stopped.\n", s.Name)
+	log.Printf("[INFO] %s stopped.\n", s.Name)
 }

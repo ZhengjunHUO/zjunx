@@ -43,15 +43,15 @@ func (c *Connection) Writer() {
 }
 
 func (c *Connection) Start() {
-	log.Printf("Connection [id: %d] established from %v\n", c.ID, c.Conn.RemoteAddr())
+	log.Printf("[DEBUG] Connection [id: %d] established from %v\n", c.ID, c.Conn.RemoteAddr())
 	go c.Reader()
 //	go c.Writer()
 }
 
 func (c *Connection) Close() {
 	if err := c.Conn.Close(); err !=nil {
-		log.Printf("Closing connection [id: %d]: %s", c.ID, err)
+		log.Printf("[DEBUG] Closing connection [id: %d]: %s", c.ID, err)
 	}else{
-		log.Printf("Connection [id: %d] closed. \n", c.ID)
+		log.Printf("[DEBUG] Connection [id: %d] closed. \n", c.ID)
 	}
 }

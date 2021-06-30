@@ -34,7 +34,7 @@ func (m *Mux) WorkerInit() {
 	for i := range m.WorkerBacklog {
 		m.WorkerBacklog[i] = make(chan ZRequest, config.Cfg.BacklogSize)
 		go func(wid int, backlog chan ZRequest){
-			log.Printf("Worker %d up.\n", wid)
+			log.Printf("[DEBUG] Worker %d up.\n", wid)
 			for {
 				select {
 					case req := <-backlog :
@@ -47,11 +47,11 @@ func (m *Mux) WorkerInit() {
 
 func (m *Mux) Register(ct encoding.ZContentType, h ZHandler) {
 	if _, ok := m.HandlerSet[ct]; ok {
-		log.Printf("Handler %d found, will be overwritten.\n")
+		log.Printf("[DEBUG] Handler %d found, will be overwritten.\n")
 	}
 
 	m.HandlerSet[ct] = h
-	log.Printf("Handler %d registered.\n")
+	log.Printf("[DEBUG] Handler %d registered.\n")
 }
 
 func (m *Mux) Schedule(req ZRequest) {
@@ -65,6 +65,6 @@ func (m *Mux) Handle(req ZRequest) {
 	if ok {
 		h.Handle(req)
 	}else{
-		log.Printf("Unknown content type (%d) from request, skip.\n", req.GetContentType())
+		log.Printf("[WARN] Unknown content type (%d) from request, skip.\n", req.GetContentType())
 	}
 }
