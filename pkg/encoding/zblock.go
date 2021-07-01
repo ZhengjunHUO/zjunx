@@ -6,8 +6,8 @@ import (
 )
 
 type ZBlock interface {
-	Marshalling(ZContent)([]byte, error)
-	Unmarshalling([]byte, ZContent) error
+	Marshalling(*Content)([]byte, error)
+	Unmarshalling([]byte, *Content) error
 }
 
 type Block struct {}
@@ -16,12 +16,12 @@ func BlockInit() ZBlock {
 	return &Block{}
 }
 
-func (b *Block) Marshalling(ct ZContent)([]byte, error) {
+func (b *Block) Marshalling(ct *Content)([]byte, error) {
 	buf := bytes.NewBuffer([]byte{})
 	data := []interface{}{
-		ct.(Content).Type,
-		ct.(Content).Len,
-		ct.(Content).Data,
+		ct.Type,
+		ct.Len,
+		ct.Data,
 	}
 
 	for _,v := range data {
@@ -33,13 +33,13 @@ func (b *Block) Marshalling(ct ZContent)([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (b *Block) Unmarshalling(data []byte, ct ZContent) error {
+func (b *Block) Unmarshalling(data []byte, ct *Content) error {
 	r := bytes.NewReader(data)
-	if err := binary.Read(r, binary.BigEndian, ct.(Content).Type); err != nil {
+	if err := binary.Read(r, binary.BigEndian, &ct.Type); err != nil {
 		return err
 	}
 
-	if err := binary.Read(r, binary.BigEndian, ct.(Content).Len); err != nil {
+	if err := binary.Read(r, binary.BigEndian, &ct.Len); err != nil {
 		return err
 	}
 
