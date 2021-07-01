@@ -2,7 +2,6 @@ package encoding
 
 import (
 	"fmt"
-	"io"
 	"net"
 	"testing"
 )
@@ -25,28 +24,14 @@ func TestZBlock(t *testing.T) {
 			}
 
 			b := BlockInit()
-			metaData := make([]byte, metadataSize)
 			for {
-				if _, err := io.ReadFull(conn, metaData); err != nil {
-					fmt.Println(err)
-					break
-				}
-
 				ct := ContentInit(ZContentType(0), []byte{})
-				if err := b.Unmarshalling(metaData, ct); err != nil {
+				if err := b.Unmarshalling(conn, ct); err != nil {
 					fmt.Println(err)
 					break
 				}
-
-				if ct.Len > 0 {
-					ct.Data = make([]byte, ct.Len)
-					if _, err := io.ReadFull(conn, ct.Data); err != nil {
-						fmt.Println(err)
-						return
-					}
 				
-					fmt.Printf("Content recved ! Type: %d; Size: %d bytes: \n%s\n", ct.Type, ct.Len, ct.Data)
-				}
+				fmt.Printf("Content recved ! Type: %d; Size: %d bytes: \n%s\n", ct.Type, ct.Len, ct.Data)
 			}
 
 			ch <- true
