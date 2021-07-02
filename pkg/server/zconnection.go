@@ -3,6 +3,7 @@ package server
 import (
 	"net"
 	"log"
+	"io"
 
 	"github.com/ZhengjunHUO/zjunx/pkg/encoding"
 )
@@ -37,7 +38,9 @@ func (c *Connection) Reader() {
 	for {
 		ct := encoding.ContentInit(encoding.ZContentType(0), []byte{})
 		if err := blk.Unmarshalling(c.Conn, ct); err != nil {
-			log.Println("[WARN] Unmarshalling failed: ", err)
+			if err != io.EOF {
+				log.Println("[WARN] Unmarshalling failed: ", err)
+			}
 			break
 		}
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"testing"
+	"io"
 )
 
 func TestZBlock(t *testing.T) {
@@ -27,7 +28,9 @@ func TestZBlock(t *testing.T) {
 			for {
 				ct := ContentInit(ZContentType(0), []byte{})
 				if err := b.Unmarshalling(conn, ct); err != nil {
-					fmt.Println(err)
+					if err != io.EOF {
+						fmt.Println(err)
+					}
 					break
 				}
 				
