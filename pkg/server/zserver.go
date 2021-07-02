@@ -57,7 +57,7 @@ func (s *Server) Start() {
 			continue
 		}
 
-		cnx := ConnInit(cnxID, conn, s)
+		cnx := ConnInit(cnxID, conn, s, s.Mux)
 		go cnx.Start()
 		cnxID += 1
 	}

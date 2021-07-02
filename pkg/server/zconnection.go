@@ -2,10 +2,9 @@ package server
 
 import (
 	"net"
-	"fmt"
 	"log"
-	"io"
-	"os"
+
+	"github.com/ZhengjunHUO/zjunx/pkg/encoding"
 )
 
 type ZConnection interface {
@@ -19,23 +18,33 @@ type Connection struct {
 	ID	uint64
 	Conn	*net.TCPConn	
 	Server	ZServer
+	Mux	ZMux
 }
 
-func ConnInit(cnxID uint64, conn *net.TCPConn, s ZServer) *Connection {
+func ConnInit(cnxID uint64, conn *net.TCPConn, s ZServer, m ZMux) *Connection {
 	return &Connection{
 		ID: cnxID,
 		Conn: conn,
 		Server: s,
+		Mux: m,
 	}
 }
 
 func (c *Connection) Reader() {
 	defer c.Close()
+
+	blk := encoding.BlockInit()
 	for {
-		if _, err := io.Copy(os.Stdout, c.Conn); err != nil {
-			fmt.Fprintln(os.Stderr, err)
+		ct := encoding.ContentInit(encoding.ZContentType(0), []byte{})
+		if err := blk.Unmarshalling(c.Conn, ct); err != nil {
+			log.Println("[WARN] Unmarshalling failed: ", err)
+			break
 		}
+
+		req := ReqInit(c, ct)
+		c.Mux.Schedule(req)
 	}
+
 }
 
 func (c *Connection) Writer() {
