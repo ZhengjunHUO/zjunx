@@ -6,11 +6,13 @@ import (
 	"fmt"
 
 	"github.com/ZhengjunHUO/zjunx/pkg/config"
+	"github.com/ZhengjunHUO/zjunx/pkg/encoding"
 )
 
 type ZServer interface {
 	Start()
 	Stop()
+	RegistHandler(encoding.ZContentType, ZHandler)
 }
 
 type Server struct {
@@ -49,6 +51,8 @@ func (s *Server) Start() {
 	defer listener.Close()
 	log.Printf("[INFO] Server is up, listening at %s:%d\n", s.ListenIP, s.ListenPort)
 
+	s.Mux.WorkerInit()
+
 	var cnxID uint64
 	for {
 		conn, err := listener.AcceptTCP()
@@ -65,4 +69,8 @@ func (s *Server) Start() {
 
 func (s *Server) Stop() {
 	log.Printf("[INFO] %s stopped.\n", s.Name)
+}
+
+func (s *Server) RegistHandler(ct encoding.ZContentType, h ZHandler) {
+	s.Mux.Register(ct, h)
 }
