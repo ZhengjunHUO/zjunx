@@ -47,11 +47,11 @@ func (m *Mux) WorkerInit() {
 
 func (m *Mux) Register(ct encoding.ZContentType, h ZHandler) {
 	if _, ok := m.HandlerSet[ct]; ok {
-		log.Printf("[DEBUG] Handler %d found, will be overwritten.\n")
+		log.Printf("[DEBUG] Handler %v found, will be overwritten.\n", ct)
 	}
 
 	m.HandlerSet[ct] = h
-	log.Printf("[DEBUG] Handler %d registered.\n")
+	log.Printf("[DEBUG] Handler %v registered.\n", ct)
 }
 
 func (m *Mux) Schedule(req ZRequest) {
@@ -61,10 +61,10 @@ func (m *Mux) Schedule(req ZRequest) {
 }
 
 func (m *Mux) Handle(req ZRequest) {
-	h, ok := m.HandlerSet[req.GetContentType()]
+	h, ok := m.HandlerSet[req.ContentType()]
 	if ok {
 		h.Handle(req)
 	}else{
-		log.Printf("[WARN] Unknown content type (%d) from request, skip.\n", req.GetContentType())
+		log.Printf("[WARN] Unknown content type (%d) from request, skip.\n", req.ContentType())
 	}
 }
