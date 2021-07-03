@@ -5,21 +5,31 @@ import (
 )
 
 type ZRequest interface {
-	GetContentType() encoding.ZContentType
+	ContentType() encoding.ZContentType
+	ContentData() []byte
+	Connection()  ZConnection
 }
 
 type Request struct {
-	conn	ZConnection
-	cont	*encoding.Content
+	Conn	ZConnection
+	Cont	*encoding.Content
 }
 
 func ReqInit(conn ZConnection, cont *encoding.Content) ZRequest {
 	return &Request{
-		conn: conn,
-		cont: cont,
+		Conn: conn,
+		Cont: cont,
 	}
 }
 
-func (r *Request) GetContentType() encoding.ZContentType {
-	return r.cont.Type
+func (r *Request) ContentType() encoding.ZContentType {
+	return r.Cont.Type
+}
+
+func (r *Request) ContentData() []byte {
+	return r.Cont.Data
+}
+
+func (r *Request) Connection() ZConnection {
+	return r.Conn
 }
