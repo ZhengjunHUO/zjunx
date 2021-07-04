@@ -8,13 +8,18 @@ import (
 
 type Config struct {
 	ServerName	string
+	// IP and port the ZJunx server listens on
 	ListenIP	string
 	ListenPort	uint16
 
+	// Maximum active connections allowed 
 	ConnLimit	uint64
 
+	// Maximum workers who handle the request  
 	WorkerProcesses uint64
+	// The lenth of request queue for each worker
 	BacklogSize	uint64
+	// Schduling Algorithm applied for workers
 	ScheduleAlgo	string
 }
 
@@ -38,11 +43,13 @@ func init() {
 // Read user defined configuration file
 func (c *Config) load() {
 	content, err := ioutil.ReadFile("../../config/zjunx.cfg")
+	// if user defined conf not found use the default config
 	if err != nil {
 		log.Println("[WARN] Unable to read the config file: ", err)
 		return
 	}
 
+	// errors should be corrected in config file before ZJunx server runs
 	if err = json.Unmarshal(content, c); err != nil {
 		log.Fatalln("[FATAL] Error occurred when parsing config file: ", err)
 	}
