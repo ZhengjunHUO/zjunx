@@ -17,6 +17,7 @@ func BlockInit() ZBlock {
 	return &Block{}
 }
 
+// Serialize the Content struct to raw bytes
 func (b *Block) Marshalling(ct *Content)([]byte, error) {
 	buf := bytes.NewBuffer([]byte{})
 	data := []interface{}{
@@ -25,6 +26,7 @@ func (b *Block) Marshalling(ct *Content)([]byte, error) {
 		ct.Data,
 	}
 
+	// Write to a buffer in order (Type, Len, Data)
 	for _,v := range data {
 		if err := binary.Write(buf, binary.BigEndian, v); err != nil {
 			return nil, err
@@ -34,7 +36,9 @@ func (b *Block) Marshalling(ct *Content)([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+// Decode the raw bytes (TCP stream) to Content struct
 func (b *Block) Unmarshalling(conn io.Reader, ct *Content) error {
+	// Read the header part (Type, Len) of the TCP payload
 	meta := make([]byte, metadataSize)
 	if _, err := io.ReadFull(conn, meta); err != nil {
 		return err
@@ -49,6 +53,7 @@ func (b *Block) Unmarshalling(conn io.Reader, ct *Content) error {
 		return err
 	}
 
+	// Read the data part (according to its Len given in metadata) of the TCP payload
 	if ct.Len > 0 {
 		ct.Data = make([]byte, ct.Len)
 		if _, err := io.ReadFull(conn, ct.Data); err != nil {
