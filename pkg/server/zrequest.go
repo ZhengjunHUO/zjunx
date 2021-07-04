@@ -10,6 +10,7 @@ type ZRequest interface {
 	Connection()  ZConnection
 }
 
+// Group the content decoded sent by client and associate ZConnection
 type Request struct {
 	Conn	ZConnection
 	Cont	*encoding.Content

@@ -7,6 +7,7 @@ import (
 	"github.com/ZhengjunHUO/zjunx/pkg/config"
 )
 
+// A multiplexer dealing with client's requests
 type ZMux interface {
 	WorkerInit()
 	Register(encoding.ZContentType, ZHandler)
@@ -30,6 +31,8 @@ func MuxInit() ZMux {
 	}
 }
 
+// Initialize a pool of worker processes to handle requests
+// Each worker process is assigned with a buffer queue
 func (m *Mux) WorkerInit() {
 	for i := range m.WorkerBacklog {
 		m.WorkerBacklog[i] = make(chan ZRequest, config.Cfg.BacklogSize)
@@ -45,6 +48,7 @@ func (m *Mux) WorkerInit() {
 	}
 }
 
+// Register the serverside defined handler to ZMux
 func (m *Mux) Register(ct encoding.ZContentType, h ZHandler) {
 	if _, ok := m.HandlerSet[ct]; ok {
 		log.Printf("[DEBUG] Handler %v found, will be overwritten.\n", ct)
@@ -54,12 +58,14 @@ func (m *Mux) Register(ct encoding.ZContentType, h ZHandler) {
 	log.Printf("[DEBUG] Handler %v registered.\n", ct)
 }
 
+// Scheduling the request to appropriate worker depending on the algorithm
 func (m *Mux) Schedule(req ZRequest) {
 	// TO IMPLEMENT
 	// switch m.ScheduleAlgo
 	m.WorkerBacklog[0] <- req	
 }
 
+// Handle client's request if related handler is registered
 func (m *Mux) Handle(req ZRequest) {
 	h, ok := m.HandlerSet[req.ContentType()]
 	if ok {

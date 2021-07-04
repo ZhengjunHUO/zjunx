@@ -40,6 +40,8 @@ func ConnInit(cnxID uint64, conn *net.TCPConn, s ZServer, m ZMux) *Connection {
 	}
 }
 
+// Read from the TCP stream payload and decode the raw bytes to struct
+// Prepare a processed request and send it to a worker to handle it
 func (c *Connection) Reader() {
 	defer c.Close()
 
@@ -60,6 +62,8 @@ func (c *Connection) Reader() {
 
 }
 
+// Called by handler after dealing with the request
+// Send the raw bytes to Writer
 func (c *Connection) RespondToClient(ct encoding.ZContentType, data []byte) error {
 	if ! c.isActive	{
 		return errors.New("Error sending response: Connection is closed")
@@ -75,6 +79,8 @@ func (c *Connection) RespondToClient(ct encoding.ZContentType, data []byte) erro
 	return nil
 }
 
+// Write the processed response (raw bytes received from handler) to client
+// Quit on receiving the close signal after Reader quits
 func (c *Connection) Writer() {
 	for {
 		select {
@@ -89,12 +95,14 @@ func (c *Connection) Writer() {
 	}
 }
 
+// Seperate read/write thread, leave the handling part to ZMux
 func (c *Connection) Start() {
 	log.Printf("[DEBUG] Connection [id: %d] established from %v\n", c.ID, c.Conn.RemoteAddr())
 	go c.Reader()
 	go c.Writer()
 }
 
+// Clenup current connection before exit
 func (c *Connection) Close() {
 	if !c.isActive {
 		return

@@ -34,6 +34,7 @@ func ServerInit() ZServer {
 	}
 }
 
+// Lauch a ZJunx server
 func (s *Server) Start() {
 	log.Printf("[INFO] Starting %s ... \n", s.Name)
 
@@ -43,7 +44,7 @@ func (s *Server) Start() {
 		log.Fatalln("[FATAL] ", err)
 	}
 
-	// launch a tcp network listener
+	// Bring up a tcp network listener
 	listener, err := net.ListenTCP(s.IPVersion, addr)
 	if err != nil {
 		log.Fatalln("[FATAL] ", err)
@@ -51,6 +52,7 @@ func (s *Server) Start() {
 	defer listener.Close()
 	log.Printf("[INFO] Server is up, listening at %s:%d\n", s.ListenIP, s.ListenPort)
 
+	// Initialize a working pool to handler requests
 	s.Mux.WorkerInit()
 
 	var cnxID uint64
@@ -61,6 +63,7 @@ func (s *Server) Start() {
 			continue
 		}
 
+		// Create a Goroutine for each incoming client
 		cnx := ConnInit(cnxID, conn, s, s.Mux)
 		go cnx.Start()
 		cnxID += 1
