@@ -15,10 +15,10 @@ func main() {
 	}
 	defer conn.Close()
 
-	blk, ct := encoding.BlockInit(), encoding.ContentInit(encoding.ZContentType(8), []byte("Hello ZJunx!\n"))
+	blk := encoding.BlockInit()
 	
-	for i:=0; i<3; i++ {
-		req, err := blk.Marshalling(ct)
+	for i:=7; i<10; i++ {
+		req, err := blk.Marshalling(encoding.ContentInit(encoding.ZContentType(i), []byte("Hello ZJunx!\n")))
 		if err != nil {
 			log.Println(err)
 		}
@@ -33,7 +33,7 @@ func main() {
 			log.Println(err)
 		}
 
-		log.Printf("Get response from server: [%d]%s\n", resp.Type, resp.Data)
+		log.Printf("Get response from server: [%d] %s\n", resp.Type, resp.Data)
 		
 		time.Sleep( 10 * time.Second )
 	}
