@@ -15,6 +15,7 @@ type ZConnection interface {
 	Writer()
 	Close()
 	RespondToClient(encoding.ZContentType, []byte) error 
+	GetID() uint64
 }
 
 type Connection struct {
@@ -100,6 +101,10 @@ func (c *Connection) Start() {
 	log.Printf("[DEBUG] Connection [id: %d] established from %v\n", c.ID, c.Conn.RemoteAddr())
 	go c.Reader()
 	go c.Writer()
+}
+
+func (c *Connection) GetID() uint64 {
+	return c.ID
 }
 
 // Clenup current connection before exit
