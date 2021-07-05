@@ -20,21 +20,21 @@ func main() {
 	for i:=7; i<10; i++ {
 		req, err := blk.Marshalling(encoding.ContentInit(encoding.ZContentType(i), []byte("Hello ZJunx!\n")))
 		if err != nil {
-			log.Println(err)
+			log.Fatalln("Marshalling error: ", err)
 		}
 
 		if _, err := conn.Write(req); err != nil {
-			log.Println(err)
+			log.Fatalln("Write to conn error: ", err)
 		}
 		log.Println("Request sent.")
 
 		resp := encoding.ContentInit(encoding.ZContentType(0), []byte{})
 		if err := blk.Unmarshalling(conn, resp); err != nil {
-			log.Println(err)
+			log.Fatalln("Unmarshalling error: ", err)
 		}
 
 		log.Printf("Get response from server: [%d] %s\n", resp.Type, resp.Data)
 		
-		time.Sleep( 10 * time.Second )
+		time.Sleep( 5 * time.Second )
 	}
 }
