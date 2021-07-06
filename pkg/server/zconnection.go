@@ -22,23 +22,24 @@ type Connection struct {
 	ID	uint64
 	Conn	*net.TCPConn	
 	Server	ZServer
-	Mux	ZMux
 
 	chServerResp	chan []byte
 	chClose		chan bool
 	isActive	bool
 }
 
-func ConnInit(cnxID uint64, conn *net.TCPConn, s ZServer, m ZMux) *Connection {
-	return &Connection{
+func ConnInit(cnxID uint64, conn *net.TCPConn, s ZServer) *Connection {
+	cnx := &Connection{
 		ID: cnxID,
 		Conn: conn,
 		Server: s,
-		Mux: m,
 		chServerResp: make(chan []byte),
 		chClose: make(chan bool, 1),
 		isActive: true,
 	}
+
+	s.GetCnxAdm().Register(cnx)
+	return cnx
 }
 
 // Read from the TCP stream payload and decode the raw bytes to struct
@@ -57,7 +58,7 @@ func (c *Connection) Reader() {
 		}
 
 		req := ReqInit(c, ct)
-		c.Mux.Schedule(req)
+		c.Server.GetMux().Schedule(req)
 		log.Println("[DEBUG] Request sheduled.")
 	}
 
@@ -117,6 +118,8 @@ func (c *Connection) Close() {
 	c.chClose <- true
 	close(c.chClose)
 	close(c.chServerResp)
+
+	c.Server.GetCnxAdm().Remove(c)
 
 	if err := c.Conn.Close(); err !=nil {
 		log.Printf("[DEBUG] Closing connection [id: %d]: %s", c.ID, err)

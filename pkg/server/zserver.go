@@ -13,6 +13,8 @@ type ZServer interface {
 	Start()
 	Stop()
 	RegistHandler(encoding.ZContentType, ZHandler)
+	GetMux() ZMux
+	GetCnxAdm() ZConnectionAdmin
 }
 
 type Server struct {
@@ -22,6 +24,7 @@ type Server struct {
 	ListenPort	uint16
 	
 	Mux		ZMux
+	CnxAdm		ZConnectionAdmin
 }
 
 func ServerInit() ZServer {
@@ -31,6 +34,7 @@ func ServerInit() ZServer {
 		IPVersion: "tcp4",
 		ListenPort: config.Cfg.ListenPort,
 		Mux: MuxInit(),
+		CnxAdm: AdmInit(),
 	}
 }
 
@@ -63,14 +67,31 @@ func (s *Server) Start() {
 			continue
 		}
 
-		// Create a Goroutine for each incoming client
-		cnx := ConnInit(cnxID, conn, s, s.Mux)
-		go cnx.Start()
-		cnxID += 1
+		if uint64(s.CnxAdm.PoolSize()) < config.Cfg.ConnLimit {
+			// Create a Goroutine for each incoming client
+			cnx := ConnInit(cnxID, conn, s)
+			go cnx.Start()
+			cnxID += 1
+		}else{
+			log.Println("[INFO] Connection number reach limit.")
+			blk := encoding.BlockInit()
+			buf, _ := blk.Marshalling(encoding.ContentInit(encoding.ZContentType(0), []byte("Server busy, please try again later ...")))
+			conn.Write(buf)
+			conn.Close()
+		}
 	}
 }
 
+func (s *Server) GetMux() ZMux {
+        return s.Mux
+}
+
+func (s *Server) GetCnxAdm() ZConnectionAdmin {
+	return s.CnxAdm
+}
+
 func (s *Server) Stop() {
+	s.CnxAdm.Evacuate()
 	log.Printf("[INFO] %s stopped.\n", s.Name)
 }
 
