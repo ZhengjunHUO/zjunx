@@ -46,6 +46,7 @@ func ConnInit(cnxID uint64, conn *net.TCPConn, s ZServer) *Connection {
 // Prepare a processed request and send it to a worker to handle it
 func (c *Connection) Reader() {
 	defer c.Close()
+	defer c.Server.GetCnxAdm().Remove(c)
 
 	blk := encoding.BlockInit()
 	for {
@@ -110,6 +111,7 @@ func (c *Connection) GetID() uint64 {
 
 // Clenup current connection before exit
 func (c *Connection) Close() {
+	log.Printf("[DEBUG] Closing connection [id: %d] ... \n", c.ID)
 	if !c.isActive {
 		return
 	}
@@ -119,10 +121,8 @@ func (c *Connection) Close() {
 	close(c.chClose)
 	close(c.chServerResp)
 
-	c.Server.GetCnxAdm().Remove(c)
-
 	if err := c.Conn.Close(); err !=nil {
-		log.Printf("[DEBUG] Closing connection [id: %d]: %s", c.ID, err)
+		log.Printf("[DEBUG] Closing connection [id: %d]: %s\n", c.ID, err)
 	}else{
 		log.Printf("[DEBUG] Connection [id: %d] closed. \n", c.ID)
 	}
