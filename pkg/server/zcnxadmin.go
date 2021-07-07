@@ -2,6 +2,7 @@ package server
 
 import (
 	"sync"
+	"log"
 )
 
 type ZConnectionAdmin interface {
@@ -51,6 +52,7 @@ func (ca *ConnectionAdmin) Remove(conn ZConnection) {
 func (ca *ConnectionAdmin) Evacuate() {
 	ca.Mutex.Lock()
 	defer ca.Mutex.Unlock()
+	log.Println("[INFO] Stop all connections ...")
 
 	for cid, conn := range ca.Pool {
 		conn.Close()
