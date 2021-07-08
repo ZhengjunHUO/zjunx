@@ -15,9 +15,14 @@ import (
 type ZServer interface {
 	Start()
 	Stop()
-	RegistHandler(encoding.ZContentType, ZHandler)
 	GetMux() ZMux
 	GetCnxAdm() ZConnectionAdmin
+
+	RegistHandler(encoding.ZContentType, ZHandler)
+	PostStart(func(ZConnection))
+	PreStop(func(ZConnection))
+	CallPostStart(ZConnection)
+	CallPreStop(ZConnection)
 }
 
 type Server struct {
@@ -29,6 +34,9 @@ type Server struct {
 	listener	*net.TCPListener
 	Mux		ZMux
 	CnxAdm		ZConnectionAdmin
+
+	PostStartHook 	func(ZConnection)
+	PreStopHook 	func(ZConnection)
 }
 
 func ServerInit() ZServer {
@@ -115,4 +123,28 @@ func (s *Server) SetInterruptHandler() {
 	<-chIntr
 	log.Println("Interrupt singal catched!")
 	s.Stop()
+}
+
+func (s *Server) PostStart(hook func(ZConnection)) {
+	s.PostStartHook = hook
+}
+
+func (s *Server) PreStop(hook func(ZConnection)) {
+	s.PreStopHook = hook
+}
+
+func (s *Server) CallPostStart(conn ZConnection) {
+	if s.PostStartHook == nil {
+		return
+	}
+
+	s.PostStartHook(conn)
+}
+
+func (s *Server) CallPreStop(conn ZConnection) {
+	if s.PreStopHook == nil {
+		return
+	}
+
+	s.PreStopHook(conn)
 }

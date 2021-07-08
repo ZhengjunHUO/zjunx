@@ -103,6 +103,7 @@ func (c *Connection) Start() {
 	log.Printf("[DEBUG] Connection [id: %d] established from %v\n", c.ID, c.Conn.RemoteAddr())
 	go c.Reader()
 	go c.Writer()
+	c.Server.CallPostStart(c)
 }
 
 func (c *Connection) GetID() uint64 {
