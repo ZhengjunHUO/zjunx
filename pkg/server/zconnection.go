@@ -16,12 +16,16 @@ type ZConnection interface {
 	Close()
 	RespondToClient(encoding.ZContentType, []byte) error 
 	GetID() uint64
+	UpdateContext(string, interface{})
+	GetContext(string) interface{}
+	DeleteContext(string)
 }
 
 type Connection struct {
 	ID	uint64
 	Conn	*net.TCPConn	
 	Server	ZServer
+	Context map[string]interface{}
 
 	chServerResp	chan []byte
 	chClose		chan bool
@@ -33,6 +37,7 @@ func ConnInit(cnxID uint64, conn *net.TCPConn, s ZServer) *Connection {
 		ID: cnxID,
 		Conn: conn,
 		Server: s,
+		Context: make(map[string]interface{}),
 		chServerResp: make(chan []byte),
 		chClose: make(chan bool, 1),
 		isActive: true,
@@ -108,6 +113,22 @@ func (c *Connection) Start() {
 
 func (c *Connection) GetID() uint64 {
 	return c.ID
+}
+
+func (c *Connection) UpdateContext(key string, value interface{}) {
+	c.Context[key] = value
+}
+
+func (c *Connection) GetContext(key string) interface{} {
+	if v, ok := c.Context[key]; ok {
+		return v
+	}else{
+		return nil
+	}
+}
+
+func (c *Connection) DeleteContext(key string) {
+	delete(c.Context, key)
 }
 
 // Clenup current connection before exit
