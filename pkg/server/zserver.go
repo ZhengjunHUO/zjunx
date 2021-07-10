@@ -17,6 +17,7 @@ type ZServer interface {
 	Stop()
 	GetMux() ZMux
 	GetCnxAdm() ZConnectionAdmin
+	SetInterruptHandler()
 
 	RegistHandler(encoding.ZContentType, ZHandler)
 	PostStart(func(ZConnection))
