@@ -108,6 +108,7 @@ func (s *Server) GetCnxAdm() ZConnectionAdmin {
 func (s *Server) Stop() {
 	s.listener.Close()
 	s.CnxAdm.Evacuate()
+	s.Mux.WorkerDismiss()
 	log.Printf("[INFO] %s stopped.\n", s.Name)
 	os.Exit(0)
 }

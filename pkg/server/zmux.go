@@ -2,6 +2,7 @@ package server
 
 import (
 	"log"
+	"time"
 
 	"github.com/ZhengjunHUO/zjunx/pkg/encoding"
 	"github.com/ZhengjunHUO/zjunx/pkg/config"
@@ -13,11 +14,13 @@ type ZMux interface {
 	Register(encoding.ZContentType, ZHandler)
 	Schedule(ZRequest)	
 	Handle(ZRequest)
+	WorkerDismiss()
 }
 
 type Mux struct {
 	WorkerProcesses uint64
 	WorkerBacklog	[]chan ZRequest
+	WorkerExit	[]chan bool
 	HandlerSet 	map[encoding.ZContentType]ZHandler
 	ScheduleAlgo	string
 }
@@ -26,6 +29,7 @@ func MuxInit() ZMux {
 	return &Mux{
 		WorkerProcesses: config.Cfg.WorkerProcesses,
 		WorkerBacklog: make([]chan ZRequest, config.Cfg.WorkerProcesses),
+		WorkerExit: make([]chan bool, config.Cfg.WorkerProcesses),
 		HandlerSet: make(map[encoding.ZContentType]ZHandler),
 		ScheduleAlgo: config.Cfg.ScheduleAlgo, 
 	}
@@ -36,15 +40,19 @@ func MuxInit() ZMux {
 func (m *Mux) WorkerInit() {
 	for i := range m.WorkerBacklog {
 		m.WorkerBacklog[i] = make(chan ZRequest, config.Cfg.BacklogSize)
-		go func(wid int, backlog chan ZRequest){
+		m.WorkerExit[i] = make(chan bool)
+		go func(wid int, backlog chan ZRequest, chExit chan bool){
 			log.Printf("[DEBUG] Worker %d up.\n", wid)
-			for {
+			mainloop: for {
 				select {
 					case req := <-backlog :
-					m.Handle(req)
+						m.Handle(req)
+					case <-chExit:
+						break mainloop
 				}
 			}			
-		}(i, m.WorkerBacklog[i])	
+			log.Printf("[DEBUG] Worker %d dismissed.\n", wid)
+		}(i, m.WorkerBacklog[i], m.WorkerExit[i])
 	}
 }
 
@@ -74,4 +82,15 @@ func (m *Mux) Handle(req ZRequest) {
 		log.Printf("[WARN] Unknown content type (%d) from request, skip.\n", req.ContentType())
 		req.Connection().RespondToClient(encoding.ZContentType(0), []byte("Unknown request !\n"))
 	}
+}
+
+func (m *Mux) WorkerDismiss() {
+	for i := range m.WorkerExit {
+		m.WorkerExit[i] <- true
+		time.Sleep(time.Millisecond * 500)
+		close(m.WorkerExit[i])
+		close(m.WorkerBacklog[i])
+	}
+
+	log.Printf("[DEBUG] All workers are dismissed.\n")
 }

@@ -32,7 +32,7 @@ type Connection struct {
 	isActive	bool
 }
 
-func ConnInit(cnxID uint64, conn *net.TCPConn, s ZServer) *Connection {
+func ConnInit(cnxID uint64, conn *net.TCPConn, s ZServer) ZConnection {
 	cnx := &Connection{
 		ID: cnxID,
 		Conn: conn,
