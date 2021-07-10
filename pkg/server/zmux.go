@@ -10,7 +10,6 @@ import (
 
 // A multiplexer dealing with client's requests
 type ZMux interface {
-	WorkerInit()
 	Register(encoding.ZContentType, ZHandler)
 	Schedule(ZRequest)	
 	Handle(ZRequest)
@@ -26,18 +25,17 @@ type Mux struct {
 }
 
 func MuxInit() ZMux {
-	return &Mux{
+	m := &Mux{
 		WorkerProcesses: config.Cfg.WorkerProcesses,
 		WorkerBacklog: make([]chan ZRequest, config.Cfg.WorkerProcesses),
 		WorkerExit: make([]chan bool, config.Cfg.WorkerProcesses),
 		HandlerSet: make(map[encoding.ZContentType]ZHandler),
 		ScheduleAlgo: config.Cfg.ScheduleAlgo, 
 	}
-}
 
-// Initialize a pool of worker processes to handle requests
-// Each worker process is assigned with a buffer queue
-func (m *Mux) WorkerInit() {
+	// Initialize a pool of worker processes to handle requests
+	// Each worker process is assigned with a buffer queue
+
 	for i := range m.WorkerBacklog {
 		m.WorkerBacklog[i] = make(chan ZRequest, config.Cfg.BacklogSize)
 		m.WorkerExit[i] = make(chan bool)
@@ -54,6 +52,8 @@ func (m *Mux) WorkerInit() {
 			log.Printf("[DEBUG] Worker %d dismissed.\n", wid)
 		}(i, m.WorkerBacklog[i], m.WorkerExit[i])
 	}
+
+	return m
 }
 
 // Register the serverside defined handler to ZMux

@@ -69,9 +69,6 @@ func (s *Server) Start() {
 	defer s.listener.Close()
 	log.Printf("[INFO] Server is up, listening at %s:%d\n", s.ListenIP, s.ListenPort)
 
-	// Initialize a working pool to handler requests
-	s.Mux.WorkerInit()
-
 	go s.SetInterruptHandler()
 	var cnxID uint64
 	for {
