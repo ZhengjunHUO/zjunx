@@ -3,6 +3,7 @@ package server
 import (
 	"log"
 	"time"
+	"math/rand"
 
 	"github.com/ZhengjunHUO/zjunx/pkg/encoding"
 	"github.com/ZhengjunHUO/zjunx/pkg/config"
@@ -21,6 +22,7 @@ type Mux struct {
 	WorkerBacklog	[]chan ZRequest
 	WorkerExit	[]chan bool
 	HandlerSet 	map[encoding.ZContentType]ZHandler
+	// legitime value: RoundRobin, Random, LeastConn
 	ScheduleAlgo	string
 }
 
@@ -68,9 +70,36 @@ func (m *Mux) Register(ct encoding.ZContentType, h ZHandler) {
 
 // Scheduling the request to appropriate worker depending on the algorithm
 func (m *Mux) Schedule(req ZRequest) {
-	// TO IMPLEMENT
-	// switch m.ScheduleAlgo
-	m.WorkerBacklog[0] <- req	
+	switch m.ScheduleAlgo {
+		case "Random":
+			m.WorkerBacklog[rand.Intn(int(m.WorkerProcesses))] <- req
+			/* Debug
+			temp := rand.Intn(int(m.WorkerProcesses))
+			log.Println("Send to : ", temp)
+			m.WorkerBacklog[temp] <- req
+			*/
+		case "LeastConn":
+			min, target := int(config.Cfg.BacklogSize), 0
+
+			for i := range m.WorkerBacklog {
+				if qs := len(m.WorkerBacklog[i]); qs == 0 {
+					//log.Println("Send to : ", i)
+					m.WorkerBacklog[i] <- req
+					return
+				}else{
+					if qs < min {
+						min, target = qs, i
+					}
+				}
+			}
+
+			//log.Println("Send to : ", target)
+			m.WorkerBacklog[target] <- req
+		default:
+			// default using "RoundRobin"
+			//log.Println("Send to : ", req.Connection().GetID()%m.WorkerProcesses)
+			m.WorkerBacklog[req.Connection().GetID()%m.WorkerProcesses] <- req
+	}
 }
 
 // Handle client's request if related handler is registered
