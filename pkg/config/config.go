@@ -20,6 +20,7 @@ type Config struct {
 	// The lenth of request queue for each worker
 	BacklogSize	uint64
 	// Schduling Algorithm applied for workers
+	// legitime value: RoundRobin, Random, LeastConn
 	ScheduleAlgo	string
 }
 
@@ -34,7 +35,7 @@ func init() {
 		ConnLimit: 256,
 		WorkerProcesses: 1,
 		BacklogSize: 2,
-		ScheduleAlgo: "rr",
+		ScheduleAlgo: "RoundRobin",
 	}
 
 	Cfg.load()
