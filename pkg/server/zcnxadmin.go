@@ -14,6 +14,7 @@ type ZConnectionAdmin interface {
 }
 
 type ConnectionAdmin struct {
+	// A vault of connections
 	Pool	map[uint64]ZConnection
 	Mutex	sync.RWMutex
 }
@@ -24,6 +25,7 @@ func AdmInit() ZConnectionAdmin {
 	}
 }
 
+// Add new connection to the vault
 func (ca *ConnectionAdmin) Register(conn ZConnection) {
 	ca.Mutex.Lock()
 	defer ca.Mutex.Unlock()
@@ -31,6 +33,7 @@ func (ca *ConnectionAdmin) Register(conn ZConnection) {
 	ca.Pool[conn.GetID()] = conn
 }
 
+// Get the connection via its id
 func (ca *ConnectionAdmin) Retrieve(cid uint64) ZConnection {
 	ca.Mutex.RLock()
 	defer ca.Mutex.RUnlock()
@@ -42,6 +45,7 @@ func (ca *ConnectionAdmin) Retrieve(cid uint64) ZConnection {
 	}
 }
 
+// Delete the connection from the vault
 func (ca *ConnectionAdmin) Remove(conn ZConnection) {
 	ca.Mutex.Lock()
 	defer ca.Mutex.Unlock()
@@ -49,6 +53,7 @@ func (ca *ConnectionAdmin) Remove(conn ZConnection) {
 	delete(ca.Pool, conn.GetID())
 }
 
+// Called when daemon is shut down, closing all active connections to ensure a clean quit
 func (ca *ConnectionAdmin) Evacuate() {
 	ca.Mutex.Lock()
 	defer ca.Mutex.Unlock()

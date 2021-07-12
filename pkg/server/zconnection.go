@@ -63,7 +63,9 @@ func (c *Connection) Reader() {
 			break
 		}
 
+		// build a request from a valid incoming package
 		req := ReqInit(c, ct)
+		// sending request to a worker
 		c.Server.GetMux().Schedule(req)
 		log.Println("[DEBUG] Request sheduled.")
 	}
@@ -83,6 +85,7 @@ func (c *Connection) RespondToClient(ct encoding.ZContentType, data []byte) erro
 		return errors.New("Error sending response to client !")	
 	}
 
+	// Writer process listening at the other end of channel
 	c.chServerResp <- buf
 	return nil
 }
@@ -139,6 +142,7 @@ func (c *Connection) Close() {
 	}
 	c.isActive = false
 
+	// close the Writer process
 	c.chClose <- true
 	close(c.chClose)
 	close(c.chServerResp)

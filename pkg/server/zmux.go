@@ -18,9 +18,13 @@ type ZMux interface {
 }
 
 type Mux struct {
+	// workers' number
 	WorkerProcesses uint64
+	// request queues for each worker
 	WorkerBacklog	[]chan ZRequest
+	// channel attached to each worker to receive quit signal
 	WorkerExit	[]chan bool
+	// A bunch of registered handler to handle request
 	HandlerSet 	map[encoding.ZContentType]ZHandler
 	// legitime value: RoundRobin, Random, LeastConn
 	ScheduleAlgo	string
@@ -37,7 +41,6 @@ func MuxInit() ZMux {
 
 	// Initialize a pool of worker processes to handle requests
 	// Each worker process is assigned with a buffer queue
-
 	for i := range m.WorkerBacklog {
 		m.WorkerBacklog[i] = make(chan ZRequest, config.Cfg.BacklogSize)
 		m.WorkerExit[i] = make(chan bool)
@@ -45,8 +48,10 @@ func MuxInit() ZMux {
 			log.Printf("[DEBUG] Worker %d up.\n", wid)
 			mainloop: for {
 				select {
+					// receive a request
 					case req := <-backlog :
 						m.Handle(req)
+					// receive a quit signal
 					case <-chExit:
 						break mainloop
 				}
