@@ -8,6 +8,7 @@ import (
 type ZConnectionAdmin interface {
 	Register(ZConnection)
 	Retrieve(uint64) ZConnection
+	RetrieveAll() []ZConnection
 	Remove(ZConnection)
 	Evacuate()
 	PoolSize() int
@@ -43,6 +44,19 @@ func (ca *ConnectionAdmin) Retrieve(cid uint64) ZConnection {
 	} else {
 		return nil
 	}
+}
+
+func (ca *ConnectionAdmin) RetrieveAll() []ZConnection {
+	ca.Mutex.RLock()
+	defer ca.Mutex.RUnlock()
+
+	conns := make([]ZConnection, 0, len(ca.Pool))
+
+	for _, v := range ca.Pool {
+		conns = append(conns, v)
+	}
+
+	return conns
 }
 
 // Delete the connection from the vault

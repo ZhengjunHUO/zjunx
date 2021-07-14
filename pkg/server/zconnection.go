@@ -16,6 +16,7 @@ type ZConnection interface {
 	Close()
 	RespondToClient(encoding.ZContentType, []byte) error 
 	GetID() uint64
+	GetServer() ZServer
 	UpdateContext(string, interface{})
 	GetContext(string) interface{}
 	DeleteContext(string)
@@ -116,6 +117,10 @@ func (c *Connection) Start() {
 
 func (c *Connection) GetID() uint64 {
 	return c.ID
+}
+
+func (c *Connection) GetServer() ZServer {
+	return c.Server
 }
 
 func (c *Connection) UpdateContext(key string, value interface{}) {
