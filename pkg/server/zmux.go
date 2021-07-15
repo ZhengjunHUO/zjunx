@@ -4,6 +4,7 @@ import (
 	"log"
 	"time"
 	"math/rand"
+	"context"
 
 	"github.com/ZhengjunHUO/zjunx/pkg/encoding"
 	"github.com/ZhengjunHUO/zjunx/pkg/config"
@@ -23,7 +24,9 @@ type Mux struct {
 	// request queues for each worker
 	WorkerBacklog	[]chan ZRequest
 	// channel attached to each worker to receive quit signal
-	WorkerExit	[]chan bool
+	//WorkerExit	[]chan bool
+	// the cancel function linked to ZMux's context
+	WorkerExit	context.CancelFunc
 	// A bunch of registered handler to handle request
 	HandlerSet 	map[encoding.ZContentType]ZHandler
 	// legitime value: RoundRobin, Random, LeastConn
@@ -31,10 +34,13 @@ type Mux struct {
 }
 
 func MuxInit() ZMux {
+	ctx, cancel := context.WithCancel(context.Background())
+
 	m := &Mux{
 		WorkerProcesses: config.Cfg.WorkerProcesses,
 		WorkerBacklog: make([]chan ZRequest, config.Cfg.WorkerProcesses),
-		WorkerExit: make([]chan bool, config.Cfg.WorkerProcesses),
+		//WorkerExit: make([]chan bool, config.Cfg.WorkerProcesses),
+		WorkerExit: cancel,
 		HandlerSet: make(map[encoding.ZContentType]ZHandler),
 		ScheduleAlgo: config.Cfg.ScheduleAlgo, 
 	}
@@ -43,6 +49,7 @@ func MuxInit() ZMux {
 	// Each worker process is assigned with a buffer queue
 	for i := range m.WorkerBacklog {
 		m.WorkerBacklog[i] = make(chan ZRequest, config.Cfg.BacklogSize)
+		/*
 		m.WorkerExit[i] = make(chan bool)
 		go func(wid int, backlog chan ZRequest, chExit chan bool){
 			log.Printf("[DEBUG] Worker %d up.\n", wid)
@@ -58,6 +65,23 @@ func MuxInit() ZMux {
 			}			
 			log.Printf("[DEBUG] Worker %d dismissed.\n", wid)
 		}(i, m.WorkerBacklog[i], m.WorkerExit[i])
+		*/
+
+		go func(wid int, backlog chan ZRequest, ctx context.Context){
+			log.Printf("[DEBUG] Worker %d up.\n", wid)
+			mainloop: for {
+				select {
+					// receive a request
+					case req := <-backlog :
+						m.Handle(req)
+					// receive a quit signal from context's cancel call
+					case <- ctx.Done():
+						break mainloop
+				}
+			}
+			log.Printf("[DEBUG] Worker %d dismissed.\n", wid)
+		}(i, m.WorkerBacklog[i], ctx)
+
 	}
 
 	return m
@@ -119,12 +143,22 @@ func (m *Mux) Handle(req ZRequest) {
 }
 
 func (m *Mux) WorkerDismiss() {
+	/*
 	for i := range m.WorkerExit {
 		m.WorkerExit[i] <- true
 		time.Sleep(time.Millisecond * 500)
 		close(m.WorkerExit[i])
 		close(m.WorkerBacklog[i])
 	}
+	*/
 
+	// send cancel signal to all workers
+	m.WorkerExit()
+	// close message queues
+	for i := range m.WorkerBacklog {
+		close(m.WorkerBacklog[i])
+	}
+
+	time.Sleep(time.Millisecond * 100)
 	log.Printf("[DEBUG] All workers are dismissed.\n")
 }
