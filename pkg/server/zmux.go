@@ -113,7 +113,7 @@ func (m *Mux) Handle(req ZRequest) {
 	if ok {
 		h.Handle(req)
 	}else{
-		log.Printf("[WARN] Unknown content type (%d) from request, skip.\n", req.ContentType())
+		log.Printf("[WARN] Unknown content type (%d) in request from Connection: [id: %v], skip.\n", req.ContentType(), req.Connection().GetID())
 		req.Connection().RespondToClient(encoding.ZContentType(0), []byte("Unknown request !\n"))
 	}
 }

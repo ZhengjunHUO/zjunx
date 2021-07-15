@@ -68,9 +68,8 @@ func (c *Connection) Reader() {
 		req := ReqInit(c, ct)
 		// sending request to a worker
 		c.Server.GetMux().Schedule(req)
-		log.Println("[DEBUG] Request sheduled.")
+		log.Printf("[DEBUG] Request from Connection [id: %v] sheduled.\n", c.GetID())
 	}
-
 }
 
 // Called by handler after dealing with the request
