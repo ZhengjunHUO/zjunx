@@ -69,6 +69,7 @@ func (s *Server) Start() {
 	}
 	defer s.listener.Close()
 	log.Printf("[INFO] Server is up, listening at %s:%d\n", s.ListenIP, s.ListenPort)
+	log.Printf("[DEBUG] Workers: %v; Queue length per worker: %v; Max connection: %v", config.Cfg.WorkerProcesses, config.Cfg.BacklogSize, config.Cfg.ConnLimit)
 
 	go s.SetInterruptHandler()
 	var cnxID uint64
