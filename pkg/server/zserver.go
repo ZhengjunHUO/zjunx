@@ -15,15 +15,17 @@ import (
 type ZServer interface {
 	Start()
 	Stop()
+
 	GetMux() ZMux
 	GetCnxAdm() ZConnectionAdmin
+	GetPostStartHook() func(ZConnection)
+	GetPreStopHook() func(ZConnection)
+
 	SetInterruptHandler()
 
 	RegistHandler(encoding.ZContentType, ZHandler)
 	PostStart(func(ZConnection))
 	PreStop(func(ZConnection))
-	CallPostStart(ZConnection)
-	CallPreStop(ZConnection)
 }
 
 type Server struct {
@@ -133,18 +135,10 @@ func (s *Server) PreStop(hook func(ZConnection)) {
 	s.PreStopHook = hook
 }
 
-func (s *Server) CallPostStart(conn ZConnection) {
-	if s.PostStartHook == nil {
-		return
-	}
-
-	s.PostStartHook(conn)
+func (s *Server) GetPostStartHook() func(ZConnection) {
+	return s.PostStartHook
 }
 
-func (s *Server) CallPreStop(conn ZConnection) {
-	if s.PreStopHook == nil {
-		return
-	}
-
-	s.PreStopHook(conn)
+func (s *Server) GetPreStopHook() func(ZConnection) {
+	return s.PreStopHook
 }

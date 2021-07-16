@@ -20,6 +20,8 @@ type ZConnection interface {
 	UpdateContext(string, interface{})
 	GetContext(string) interface{}
 	DeleteContext(string)
+	CallPostStart()
+	CallPreStop()
 }
 
 type Connection struct {
@@ -111,7 +113,7 @@ func (c *Connection) Start() {
 	log.Printf("[DEBUG] Connection [id: %d] established from %v\n", c.ID, c.Conn.RemoteAddr())
 	go c.Reader()
 	go c.Writer()
-	c.Server.CallPostStart(c)
+	c.CallPostStart()
 }
 
 func (c *Connection) GetID() uint64 {
@@ -138,10 +140,26 @@ func (c *Connection) DeleteContext(key string) {
 	delete(c.Context, key)
 }
 
+func (c *Connection) CallPostStart() {
+	if c.Server.GetPostStartHook() == nil {
+		return
+	}
+
+	c.Server.GetPostStartHook()(c)
+}
+
+func (c *Connection) CallPreStop() {
+	if c.Server.GetPreStopHook() == nil {
+		return
+	}
+
+	c.Server.GetPreStopHook()(c)
+}
+
 // Clenup current connection before exit
 func (c *Connection) Close() {
 	log.Printf("[DEBUG] Closing connection [id: %d] ... \n", c.ID)
-	c.Server.CallPreStop(c)
+	c.CallPreStop()
 
 	if !c.isActive {
 		return
