@@ -141,6 +141,8 @@ func (c *Connection) DeleteContext(key string) {
 // Clenup current connection before exit
 func (c *Connection) Close() {
 	log.Printf("[DEBUG] Closing connection [id: %d] ... \n", c.ID)
+	c.Server.CallPreStop(c)
+
 	if !c.isActive {
 		return
 	}

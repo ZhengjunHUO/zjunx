@@ -31,6 +31,9 @@ func (lh *LoginHandler) Handle(req server.ZRequest) {
 	if err := req.Connection().RespondToClient(encoding.ZContentType(24), []byte(str)); err != nil {
 		log.Println("[DEBUG] EchoHandler error: ", err)
 	}
+
+	msg := encoding.ContentInit(encoding.ZContentType(2), []byte(username+"上线了🎉"))
+	req.Connection().GetServer().GetMux().Handle(server.ReqInit(req.Connection(), msg))
 }
 
 type BroadcastHandler struct {
@@ -56,10 +59,18 @@ func (bh *BroadcastHandler) Handle(req server.ZRequest) {
 	}
 }
 
+func AnnonceOffline(conn server.ZConnection) {
+	if username := conn.GetContext("Username"); username != nil {
+		msg := encoding.ContentInit(encoding.ZContentType(2), []byte(string(username.(string))+"下线了👋"))
+		conn.GetServer().GetMux().Handle(server.ReqInit(conn, msg))
+	}
+}
+
 func main() {
 	s := server.ServerInit()
 	s.RegistHandler(encoding.ZContentType(1), &LoginHandler{})
 	s.RegistHandler(encoding.ZContentType(2), &BroadcastHandler{})
 	s.RegistHandler(encoding.ZContentType(8), &EchoHandler{})
+	s.PreStop(AnnonceOffline)
 	s.Start()
 }
