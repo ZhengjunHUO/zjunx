@@ -2,9 +2,9 @@ package server
 
 import (
 	"log"
-	"time"
 	"math/rand"
 	"context"
+	"sync"
 
 	"github.com/ZhengjunHUO/zjunx/pkg/encoding"
 	"github.com/ZhengjunHUO/zjunx/pkg/config"
@@ -27,6 +27,7 @@ type Mux struct {
 	//WorkerExit	[]chan bool
 	// the cancel function linked to ZMux's context
 	WorkerExit	context.CancelFunc
+	WorkerGroup	sync.WaitGroup
 	// A bunch of registered handler to handle request
 	HandlerSet 	map[encoding.ZContentType]ZHandler
 	// legitime value: RoundRobin, Random, LeastConn
@@ -49,6 +50,7 @@ func MuxInit() ZMux {
 	// Each worker process is assigned with a buffer queue
 	for i := range m.WorkerBacklog {
 		m.WorkerBacklog[i] = make(chan ZRequest, config.Cfg.BacklogSize)
+		m.WorkerGroup.Add(1)
 		/*
 		m.WorkerExit[i] = make(chan bool)
 		go func(wid int, backlog chan ZRequest, chExit chan bool){
@@ -76,6 +78,7 @@ func MuxInit() ZMux {
 						m.Handle(req)
 					// receive a quit signal from context's cancel call
 					case <- ctx.Done():
+						m.WorkerGroup.Done()
 						break mainloop
 				}
 			}
@@ -159,6 +162,6 @@ func (m *Mux) WorkerDismiss() {
 		close(m.WorkerBacklog[i])
 	}
 
-	time.Sleep(time.Millisecond * 100)
+	m.WorkerGroup.Wait()
 	log.Printf("[DEBUG] All workers are dismissed.\n")
 }
