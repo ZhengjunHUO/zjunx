@@ -37,7 +37,7 @@ func init() {
 	if !checkConfig() {
 		Cfg = &Config {
 			ServerName: "Zjunx Server",
-			ListenIP: "127.0.0.1",
+			ListenIP: "0.0.0.0",
 			ListenPort: 8080,
 			ConnLimit: 128,
 			WorkerProcesses: 1,
