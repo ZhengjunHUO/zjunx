@@ -49,7 +49,7 @@ func init() {
 
 func checkConfig() bool {
 	// Read user defined configuration file
-	content, err := ioutil.ReadFile("../../config/zjunx.cfg")
+	content, err := ioutil.ReadFile("/etc/zjunx/zjunx.cfg")
 	// if user defined conf not found use the default config
 	if err != nil {
 		log.Println("[WARN] Unable to read the config file: ", err)
