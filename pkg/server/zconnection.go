@@ -26,7 +26,7 @@ type ZConnection interface {
 
 type Connection struct {
 	ID	uint64
-	Conn	*net.TCPConn	
+	Conn	net.Conn
 	Server	ZServer
 	Context map[string]interface{}
 
@@ -35,7 +35,7 @@ type Connection struct {
 	isActive	bool
 }
 
-func ConnInit(cnxID uint64, conn *net.TCPConn, s ZServer) ZConnection {
+func ConnInit(cnxID uint64, conn net.Conn, s ZServer) ZConnection {
 	cnx := &Connection{
 		ID: cnxID,
 		Conn: conn,
