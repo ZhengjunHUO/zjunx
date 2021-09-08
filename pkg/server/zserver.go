@@ -2,6 +2,7 @@ package server
 
 import (
 	"net"
+	"crypto/tls"
 	"log"
 	"fmt"
 	"os"
@@ -34,7 +35,7 @@ type Server struct {
 	IPVersion	string
 	ListenPort	uint16
 	
-	listener	*net.TCPListener
+	listener	net.Listener
 	Mux		ZMux
 	CnxAdm		ZConnectionAdmin
 
@@ -58,14 +59,22 @@ func ServerInit() ZServer {
 func (s *Server) Start() {
 	log.Printf("[INFO] Starting %s ... \n", s.Name)
 
-	// Parse the tcp addr from the server's config
-	addr, err := net.ResolveTCPAddr(s.IPVersion, fmt.Sprintf("%s:%d", s.ListenIP, s.ListenPort))
+	// Load server's certificate and key
+	cert, err := tls.LoadX509KeyPair("ssl/zjunx.crt", "ssl/zjunx.key")
 	if err != nil {
+		log.Fatalln(err)
+	}
+
+	cfg := &tls.Config{Certificates: []tls.Certificate{cert}}
+
+	// Parse the tcp addr from the server's config
+	addr := fmt.Sprintf("%s:%d", s.ListenIP, s.ListenPort)
+	if _, err = net.ResolveTCPAddr(s.IPVersion, addr); err != nil {
 		log.Fatalln("[FATAL] ", err)
 	}
 
-	// Bring up a tcp network listener
-	s.listener, err = net.ListenTCP(s.IPVersion, addr)
+	// Bring up a tcp network listener with TLS enabled
+	s.listener, err = tls.Listen("tcp", addr, cfg)
 	if err != nil {
 		log.Fatalln("[FATAL] ", err)
 	}
@@ -76,7 +85,7 @@ func (s *Server) Start() {
 	go s.SetInterruptHandler()
 	var cnxID uint64
 	for {
-		conn, err := s.listener.AcceptTCP()
+		conn, err := s.listener.Accept()
 		if err != nil {
 			//log.Println("[WARN] ", err)
 			continue
