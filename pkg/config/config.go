@@ -33,27 +33,25 @@ var Cfg *Config
 
 // Default configuration values
 func init() {
-	Cfg = &Config{}
-	if !checkConfig() {
-		Cfg = &Config {
-			ServerName: "Zjunx Server",
-			ListenIP: "0.0.0.0",
-			ListenPort: 8080,
-			ConnLimit: 128,
-			WorkerProcesses: 1,
-			BacklogSize: 1,
-			ScheduleAlgo: "RoundRobin",
-		}
+	Cfg = &Config {
+		ServerName: "Zjunx Server",
+		ListenIP: "0.0.0.0",
+		ListenPort: 8080,
+		ConnLimit: 128,
+		WorkerProcesses: 1,
+		BacklogSize: 1,
+		ScheduleAlgo: "RoundRobin",
 	}
+	checkConfig()
 }
 
-func checkConfig() bool {
+func checkConfig() {
 	// Read user defined configuration file
 	content, err := ioutil.ReadFile("/etc/zjunx/zjunx.cfg")
 	// if user defined conf not found use the default config
 	if err != nil {
 		log.Println("[WARN] Unable to read the config file: ", err)
-		return false
+		return
 	}
 
 	// syntax errors should be corrected in config file before ZJunx server runs
@@ -84,5 +82,5 @@ func checkConfig() bool {
 	}
 
 	log.Println("[Info] Config file loaded.")
-	return true
+	return
 }
