@@ -4,12 +4,21 @@ import (
 	"log"
 	"encoding/json"
 	"io/ioutil"
+	"flag"
 )
 
 // Modify the plafond according to your infrastructure
 const MAX_CONN_NUM uint64 = 65535
 const MAX_WORKER_NUM uint64 = 2048
 const MAX_QUEUE_SIZE uint64 = 128
+
+const DefaultServerName string = "Zjunx Server"
+const DefaultListenIP string = "0.0.0.0"
+const DefaultListenPort uint16 = 8080
+const DefaultConnLimit uint64 = 128
+const DefaultWorkerProcesses uint64 = 1
+const DefaultBacklogSize uint64 = 1
+const DefaultScheduleAlgo string = "RoundRobin"
 
 type Config struct {
 	ServerName	string
@@ -31,18 +40,60 @@ type Config struct {
 
 var Cfg *Config
 
-// Default configuration values
 func init() {
+	// Default configuration values
 	Cfg = &Config {
-		ServerName: "Zjunx Server",
-		ListenIP: "0.0.0.0",
-		ListenPort: 8080,
-		ConnLimit: 128,
-		WorkerProcesses: 1,
-		BacklogSize: 1,
-		ScheduleAlgo: "RoundRobin",
+		ServerName: DefaultServerName,
+		ListenIP: DefaultListenIP,
+		ListenPort: DefaultListenPort,
+		ConnLimit: DefaultConnLimit,
+		WorkerProcesses: DefaultWorkerProcesses,
+		BacklogSize: DefaultBacklogSize,
+		ScheduleAlgo: DefaultScheduleAlgo,
 	}
+
+	// Values from config file override the default
 	checkConfig()
+
+        // Parameter passed from command line with the highest priority
+	var serverName	string
+	var listenIP	string
+	var connLimit	uint64
+	var workerProcesses uint64
+	var backlogSize	uint64
+	var scheduleAlgo string
+
+	flag.StringVar(&serverName, "n", DefaultServerName, "Server name")
+	flag.StringVar(&listenIP, "h", DefaultListenIP, "IP server listens on")
+	flag.Uint64Var(&connLimit, "l", DefaultConnLimit, "Max connections allowed")
+	flag.Uint64Var(&workerProcesses, "w", DefaultWorkerProcesses, "Number of worker")
+	flag.Uint64Var(&backlogSize, "s", DefaultBacklogSize, "Size of queue per worker")
+	flag.StringVar(&scheduleAlgo, "a", DefaultScheduleAlgo, "Algorithm used to distribute job to worker")
+	flag.Parse()
+
+	if serverName != DefaultServerName {
+		Cfg.ServerName = serverName
+	}
+
+	if listenIP != DefaultListenIP {
+		Cfg.ListenIP = listenIP
+	}
+
+	if connLimit != DefaultConnLimit {
+		Cfg.ConnLimit = connLimit
+	}
+
+	if workerProcesses != DefaultWorkerProcesses {
+		Cfg.WorkerProcesses = workerProcesses
+	}
+
+	if backlogSize != DefaultBacklogSize {
+		Cfg.BacklogSize = backlogSize
+	}
+
+	if scheduleAlgo != DefaultScheduleAlgo {
+		Cfg.ScheduleAlgo = scheduleAlgo
+	}
 }
 
 func checkConfig() {
