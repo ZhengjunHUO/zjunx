@@ -53,9 +53,16 @@ func init() {
 	}
 
 	// Values from config file override the default
-	checkConfig()
+	loadConfig()
 
         // Parameter passed from command line with the highest priority
+	parseConfig()
+
+	// Check the eligibility of given parameter before launch the server
+	checkConfig()
+}
+
+func parseConfig() {
 	var serverName	string
 	var listenIP	string
 	var connLimit	uint64
@@ -64,8 +71,8 @@ func init() {
 	var scheduleAlgo string
 
 	flag.StringVar(&serverName, "n", DefaultServerName, "Server name")
-	flag.StringVar(&listenIP, "h", DefaultListenIP, "IP server listens on")
-	flag.Uint64Var(&connLimit, "l", DefaultConnLimit, "Max connections allowed")
+	flag.StringVar(&listenIP, "l", DefaultListenIP, "IP server listens on")
+	flag.Uint64Var(&connLimit, "c", DefaultConnLimit, "Max connections allowed")
 	flag.Uint64Var(&workerProcesses, "w", DefaultWorkerProcesses, "Number of worker")
 	flag.Uint64Var(&backlogSize, "s", DefaultBacklogSize, "Size of queue per worker")
 	flag.StringVar(&scheduleAlgo, "a", DefaultScheduleAlgo, "Algorithm used to distribute job to worker")
@@ -96,7 +103,7 @@ func init() {
 	}
 }
 
-func checkConfig() {
+func loadConfig() {
 	// Read user defined configuration file
 	content, err := ioutil.ReadFile("/etc/zjunx/zjunx.cfg")
 	// if user defined conf not found use the default config
@@ -110,6 +117,10 @@ func checkConfig() {
 		log.Fatalln("[FATAL] Error occurred when parsing config file: ", err)
 	}
 
+	log.Println("[Info] Config file loaded.")
+}
+
+func checkConfig() {
 	// regularize user defined max values
 	switch {
 		case Cfg.ConnLimit < 1:
@@ -131,7 +142,4 @@ func checkConfig() {
 		case Cfg.BacklogSize > MAX_QUEUE_SIZE:
 			Cfg.BacklogSize = MAX_QUEUE_SIZE
 	}
-
-	log.Println("[Info] Config file loaded.")
-	return
 }
