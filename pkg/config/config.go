@@ -14,7 +14,7 @@ const MAX_QUEUE_SIZE uint64 = 128
 
 const DefaultServerName string = "Zjunx Server"
 const DefaultListenIP string = "0.0.0.0"
-const DefaultListenPort uint16 = 8080
+const DefaultListenPort uint64 = 8080
 const DefaultConnLimit uint64 = 128
 const DefaultWorkerProcesses uint64 = 1
 const DefaultBacklogSize uint64 = 1
@@ -24,7 +24,7 @@ type Config struct {
 	ServerName	string
 	// IP and port the ZJunx server listens on
 	ListenIP	string
-	ListenPort	uint16
+	ListenPort	uint64
 
 	// Maximum active connections allowed 
 	ConnLimit	uint64
@@ -65,6 +65,7 @@ func init() {
 func parseConfig() {
 	var serverName	string
 	var listenIP	string
+	var listenPort	uint64
 	var connLimit	uint64
 	var workerProcesses uint64
 	var backlogSize	uint64
@@ -72,10 +73,11 @@ func parseConfig() {
 
 	flag.StringVar(&serverName, "n", DefaultServerName, "Server name")
 	flag.StringVar(&listenIP, "l", DefaultListenIP, "IP server listens on")
+	flag.Uint64Var(&listenPort, "p", DefaultListenPort, "IP port listens on")
 	flag.Uint64Var(&connLimit, "c", DefaultConnLimit, "Max connections allowed")
 	flag.Uint64Var(&workerProcesses, "w", DefaultWorkerProcesses, "Number of worker")
 	flag.Uint64Var(&backlogSize, "s", DefaultBacklogSize, "Size of queue per worker")
-	flag.StringVar(&scheduleAlgo, "a", DefaultScheduleAlgo, "Algorithm used to distribute job to worker")
+	flag.StringVar(&scheduleAlgo, "a", DefaultScheduleAlgo, "Algorithm used to distribute job to worker, in [RoundRobin, Random, LeastConn]")
 	flag.Parse()
 
 	if serverName != DefaultServerName {
@@ -84,6 +86,10 @@ func parseConfig() {
 
 	if listenIP != DefaultListenIP {
 		Cfg.ListenIP = listenIP
+	}
+
+	if listenPort != DefaultListenPort {
+		Cfg.ListenPort = listenPort
 	}
 
 	if connLimit != DefaultConnLimit {
@@ -141,5 +147,15 @@ func checkConfig() {
 			Cfg.BacklogSize = 1
 		case Cfg.BacklogSize > MAX_QUEUE_SIZE:
 			Cfg.BacklogSize = MAX_QUEUE_SIZE
+	}
+
+	algos := []string{"RoundRobin", "Random", "LeastConn"}
+	dict := make(map[string]bool)
+	for i := range algos {
+		dict[algos[i]] = true
+	}
+
+	if _, ok := dict[Cfg.ScheduleAlgo]; !ok {
+		Cfg.ScheduleAlgo = DefaultScheduleAlgo
 	}
 }

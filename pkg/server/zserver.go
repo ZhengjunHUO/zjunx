@@ -33,7 +33,7 @@ type Server struct {
 	Name		string
 	ListenIP	string
 	IPVersion	string
-	ListenPort	uint16
+	ListenPort	uint64
 	
 	listener	net.Listener
 	Mux		ZMux
@@ -79,8 +79,8 @@ func (s *Server) Start() {
 		log.Fatalln("[FATAL] ", err)
 	}
 	defer s.listener.Close()
-	log.Printf("[INFO] Server is up, listening at %s:%d\n", s.ListenIP, s.ListenPort)
-	log.Printf("[DEBUG] Workers: %v; Queue length per worker: %v; Max connection: %v", config.Cfg.WorkerProcesses, config.Cfg.BacklogSize, config.Cfg.ConnLimit)
+	log.Printf("[INFO] Server is up, listening at %s:%d, max connection: %v\n", s.ListenIP, s.ListenPort, config.Cfg.ConnLimit)
+	log.Printf("[DEBUG] Workers: %v; Queue length per worker: %v; Scheduling algorithm: %v", config.Cfg.WorkerProcesses, config.Cfg.BacklogSize, config.Cfg.ScheduleAlgo)
 
 	go s.SetInterruptHandler()
 	var cnxID uint64
