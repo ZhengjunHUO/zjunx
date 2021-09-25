@@ -30,7 +30,7 @@ The following options can be passed to the server:
 ## About client 
 - The request's content sent by client should follow the same convention as the handler's. 
 
-Example
+## Example
 ```bash
 # A primitive chat server
 # cd cmd/zjunx
