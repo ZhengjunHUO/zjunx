@@ -2,6 +2,9 @@
 
 A pure Go (using standard library only) light-weight TCP Server Framework with TLS enabled working at full duplex, which makes it ideal for some realtime implementations, such as instant messaging, video conference, collaborative editing, online games, realtime monitoring(stock, GPS, vital signs etc.) ...
 
+## TODO 
+Add a schema here to explain how it works
+
 ## About server
 - To instantiate this framework, we need to prepare the handlers (according to what we want to implement) to handle the client's request, and register them to the instance. It's also possible to register the hooks before/after the connection is established/terminated.
 ```bash
