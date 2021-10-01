@@ -34,15 +34,7 @@ The following options can be passed to the server:
 - The request's content sent by client should follow the same convention as the handler's. 
 
 ## Example
-```bash
-# A primitive chat server
-$ cd cmd/zjunx
-$ go run main.go [options]
-
-# Launch a client
-$ go run examples/client/chat.go
-# Duplicate the chat.go, change the username, launch another client
-```
+A reference implementation zjchat is available [here](https://github.com/ZhengjunHUO/zjchat)
 
 ## Structs and Funcs
 ![ZJunx Framework](./docs/ZJunxFramework.png)
