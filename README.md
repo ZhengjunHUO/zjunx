@@ -36,5 +36,9 @@ The following options can be passed to the server:
 ## Example
 A reference implementation zjchat is available [here](https://github.com/ZhengjunHUO/zjchat)
 
+## TODO
+- Refacto the server init part with pattern
+- Use protobuf
+
 ## Structs and Funcs
 ![ZJunx Framework](./docs/ZJunxFramework.png)
