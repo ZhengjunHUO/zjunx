@@ -67,10 +67,10 @@ func AnnonceOffline(conn server.ZConnection) {
 }
 
 func main() {
-	s := server.ServerInit()
-	s.RegistHandler(encoding.ZContentType(1), &LoginHandler{})
-	s.RegistHandler(encoding.ZContentType(2), &BroadcastHandler{})
-	s.RegistHandler(encoding.ZContentType(8), &EchoHandler{})
-	s.PreStop(AnnonceOffline)
-	s.Start()
+	server.NewServer(
+		server.WithHandler(encoding.ZContentType(1), &LoginHandler{}),
+		server.WithHandler(encoding.ZContentType(2), &BroadcastHandler{}),
+		server.WithHandler(encoding.ZContentType(8), &EchoHandler{}),
+		server.WithPreStop(AnnonceOffline),
+	).Start()
 }
