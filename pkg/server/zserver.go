@@ -23,10 +23,6 @@ type ZServer interface {
 	GetPreStopHook() func(ZConnection)
 
 	SetInterruptHandler()
-
-	RegistHandler(encoding.ZContentType, ZHandler)
-	PostStart(func(ZConnection))
-	PreStop(func(ZConnection))
 }
 
 type Server struct {
@@ -34,17 +30,37 @@ type Server struct {
 	ListenIP	string
 	IPVersion	string
 	ListenPort	uint64
-	
+
 	listener	net.Listener
 	Mux		ZMux
 	CnxAdm		ZConnectionAdmin
 
-	PostStartHook 	func(ZConnection)
-	PreStopHook 	func(ZConnection)
+	PostStartHook	func(ZConnection)
+	PreStopHook	func(ZConnection)
 }
 
-func ServerInit() ZServer {
-	return &Server {
+type ServerOption func(*Server)
+
+func WithHandler(ct encoding.ZContentType, h ZHandler) ServerOption {
+	return func(s *Server) {
+		s.Mux.Register(ct, h)
+	}
+}
+
+func WithPostStart(hook func(ZConnection)) ServerOption {
+	return func(s *Server) {
+		s.PostStartHook = hook
+	}
+}
+
+func WithPreStop(hook func(ZConnection)) ServerOption {
+	return func(s *Server) {
+		s.PreStopHook = hook
+	}
+}
+
+func NewServer(opts ...ServerOption) ZServer {
+	s := &Server {
 		Name: config.Cfg.ServerName,
 		ListenIP: config.Cfg.ListenIP,
 		IPVersion: "tcp4",
@@ -53,6 +69,12 @@ func ServerInit() ZServer {
 		Mux: MuxInit(),
 		CnxAdm: AdmInit(),
 	}
+
+	for _, opt := range opts {
+		opt(s)
+	}
+
+	return s
 }
 
 // Lauch a ZJunx server
@@ -123,10 +145,6 @@ func (s *Server) Stop() {
 	os.Exit(0)
 }
 
-func (s *Server) RegistHandler(ct encoding.ZContentType, h ZHandler) {
-	s.Mux.Register(ct, h)
-}
-
 func (s *Server) SetInterruptHandler() {
 	chIntr := make(chan os.Signal, 1)
 	signal.Notify(chIntr, os.Interrupt, syscall.SIGTERM)
@@ -134,14 +152,6 @@ func (s *Server) SetInterruptHandler() {
 	<-chIntr
 	log.Println("Interrupt singal catched!")
 	s.Stop()
-}
-
-func (s *Server) PostStart(hook func(ZConnection)) {
-	s.PostStartHook = hook
-}
-
-func (s *Server) PreStop(hook func(ZConnection)) {
-	s.PreStopHook = hook
 }
 
 func (s *Server) GetPostStartHook() func(ZConnection) {
